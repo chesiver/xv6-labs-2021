@@ -432,3 +432,26 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+
+void vmprint_with_depth(pagetable_t pagetable, int depth) {
+  for(int i = 0; i < 512; i += 1) {
+    pte_t pte = pagetable[i];
+    if((pte & PTE_V) && (pte & (PTE_R|PTE_W|PTE_X)) == 0){
+      // this PTE points to a lower-level page table.
+      uint64 child = PTE2PA(pte);
+      printf("..");
+      for (int j = 1; j < depth; j += 1) printf(" ..");
+      printf("%d: pte: %p pa: %p\n", i, pte, child);
+      vmprint_with_depth((pagetable_t)child, depth + 1);
+    } else if(pte & PTE_V){
+      uint64 child = PTE2PA(pte);
+      printf("..");
+      for (int j = 1; j < depth; j += 1) printf(" ..");
+      printf("%d: pte: %p pa: %p\n", i, pte, child);
+    }
+  }
+}
+void vmprint(pagetable_t pagetable) {
+  printf("page table %p\n", pagetable);
+  vmprint_with_depth(pagetable, 1);
+}
