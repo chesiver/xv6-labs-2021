@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "name": "Test",
+            "defines": [
+                "LAB_PGTBL"
+            ],
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/clang",
+            "includePath": ["/usr/include", "${workspaceFolder}"],
+            "cStandard": "c17",
+            "cppStandard": "c++14"
+        }
+    ],
+    "version": 4
+}
