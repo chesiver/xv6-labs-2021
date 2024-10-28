@@ -146,7 +146,6 @@ int
 ugetpid(void)
 {
   struct usyscall *u = (struct usyscall *)USYSCALL;
-  printf("Test address !!!!!!!: %p\n", u);
   return u->pid;
 }
 #endif

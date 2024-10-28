@@ -116,6 +116,13 @@ walkaddr(pagetable_t pagetable, uint64 va)
     return 0;
   if((*pte & PTE_U) == 0)
     return 0;
+
+  /*
+    Mark access bit for entry
+  */
+  *pte |= PTE_A;
+
+
   pa = PTE2PA(*pte);
   return pa;
 }
@@ -441,17 +448,35 @@ void vmprint_with_depth(pagetable_t pagetable, int depth) {
       uint64 child = PTE2PA(pte);
       printf("..");
       for (int j = 1; j < depth; j += 1) printf(" ..");
-      printf("%d: pte: %p pa: %p\n", i, pte, child);
+      printf("%d: pte %p pa %p\n", i, pte, child);
       vmprint_with_depth((pagetable_t)child, depth + 1);
     } else if(pte & PTE_V){
       uint64 child = PTE2PA(pte);
       printf("..");
       for (int j = 1; j < depth; j += 1) printf(" ..");
-      printf("%d: pte: %p pa: %p\n", i, pte, child);
+      printf("%d: pte %p pa %p\n", i, pte, child);
     }
   }
 }
+
 void vmprint(pagetable_t pagetable) {
   printf("page table %p\n", pagetable);
   vmprint_with_depth(pagetable, 1);
+}
+
+int check_pgaccess(pagetable_t pagetable, uint64 start_va, int cnt, uint64 out) {
+  pagetable_t tmp = (pagetable_t) kalloc();
+  memset(tmp, 0, PGSIZE);
+  pte_t *start = walk(pagetable, start_va, 0);
+  for (int i = 0; i < cnt; i += 1) {
+    pte_t *entry = &start[i];
+    if (*entry & PTE_A) {
+      tmp[i / 64] |= (uint64)1 << (i % 64);
+      *entry &= ~PTE_A;
+    }
+  }
+  int n_bytes = cnt % 8 == 0 ? (cnt / 8) : (cnt / 8 + 1);
+  copyout(pagetable, out, (char *)tmp, n_bytes);
+  kfree(tmp);
+  return 0;
 }

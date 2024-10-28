@@ -81,7 +81,13 @@ int
 sys_pgaccess(void)
 {
   // lab pgtbl: your code here.
-  return 0;
+  uint64 buf;
+  int cnt;
+  uint64 mask;
+  argaddr(0, &buf);
+  argint(1, &cnt);
+  argaddr(2, &mask);
+  return check_pgaccess(myproc()->pagetable, buf, cnt, mask);
 }
 #endif
 
