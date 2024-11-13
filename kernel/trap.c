@@ -67,6 +67,15 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
+  } else if (r_scause() == 15 && uncopiedcow(p->pagetable, r_stval())) { 
+    /*
+      page fault caused by write, check for cow fork
+     */
+    if (uvmcopycow(p->pagetable, r_stval()) != 0) {
+      printf("usertrap(): unexpected cow page fault pid=%d\n", p->pid);
+      printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+      p->killed = 1;
+    }
   } else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
